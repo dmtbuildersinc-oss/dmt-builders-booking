@@ -1,6 +1,5 @@
 // DMT Builders — Booking database schema.
-// SQLite for local development; swap the datasource provider/url to
-// "postgresql" + a connection string to upgrade to Postgres in production.
+// Postgres (Neon), used for both local development and production.
 
 generator client {
   provider = "prisma-client"
@@ -8,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Booking {
