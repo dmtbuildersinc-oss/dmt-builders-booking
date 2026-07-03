@@ -1,0 +1,49 @@
+// DMT Builders — Booking database schema.
+// SQLite for local development; swap the datasource provider/url to
+// "postgresql" + a connection string to upgrade to Postgres in production.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Booking {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String
+  email         String
+  address       String
+  projectTitle  String
+
+  // Instant in time (UTC) — used for the actual Google Calendar event.
+  startTime     DateTime
+  endTime       DateTime
+
+  // Pacific-time representation, stored as plain strings so availability
+  // and double-booking checks never depend on server timezone math.
+  dateKey       String   // "2026-07-10"
+  timeSlot      String   // "14:00" (24h, Pacific)
+
+  status        String   @default("confirmed") // confirmed | cancelled
+  googleEventId String?
+
+  createdAt     DateTime @default(now())
+
+  @@unique([dateKey, timeSlot], name: "dateKey_timeSlot", map: "unique_slot_per_day")
+  @@index([dateKey])
+}
+
+// Singleton row (id = 1) holding the owner's Google OAuth tokens so the
+// app can create Calendar events and read availability on Michael's behalf.
+model GoogleToken {
+  id           Int      @id @default(1)
+  accessToken  String
+  refreshToken String
+  expiryDate   BigInt
+  scope        String
+  updatedAt    DateTime @updatedAt
+}
